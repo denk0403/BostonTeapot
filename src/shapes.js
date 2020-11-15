@@ -26,12 +26,12 @@ const UNIT_SIZE = { width: 1, height: 1, depth: 1 };
 // Camera constants and values
 const camera = {
     translation: { x: -20, y: 20, z: -20 },
-    rotation: { x: 40, y: 235, z: 0 },
+    rotation: { x: 0, y: 0, z: 0 },
 };
 const target = [-10, 0, 5]; // declare the origin as the target we'll look at
 
 // Light Source constants
-const lightSource = [0.4, 0.3, 0.5];
+const lightSource = [-1, -2, 2];
 
 /**
  * @type {Shape[]}
@@ -62,6 +62,6 @@ const shapes = [
         color: { ...RED_RGB },
         translation: { x: -20, y: 0, z: 5 },
         scale: { x: 10, y: 10, z: 10 },
-        rotation: { x: 0, y: 30, z: 180 },
+        rotation: { x: 0, y: 0, z: 180 },
     },
 ];

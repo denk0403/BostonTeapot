@@ -1743,11 +1743,9 @@ const BOSTON_TEAPOT_NORMALS = BOSTON_TEAPOT_BUFFER.reduce((result, _, index) => 
 }, [])
     .reduce((result, _, index, vertices) => {
         if (index % 3 === 0) {
-            const crossVector = m4.normalize(
-                m4.cross(
-                    m4.subtractVectors(vertices[index + 2], vertices[index]),
-                    m4.subtractVectors(vertices[index + 1], vertices[index]),
-                ),
+            const crossVector = m4.cross(
+                m4.subtractVectors(vertices[index + 2], vertices[index]),
+                m4.subtractVectors(vertices[index + 1], vertices[index]),
             );
             result.push(crossVector, crossVector, crossVector);
         }

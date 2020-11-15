@@ -35,6 +35,17 @@ const init = () => {
     // Get WebGL context
     gl = canvas.getContext("webgl");
 
+    document.getElementById("dlrx").value = camera.translation.x;
+    document.getElementById("dlry").value = camera.translation.y;
+    document.getElementById("dlrz").value = camera.translation.z;
+
+    document.getElementById("dlrx").onchange = (event) =>
+        webglUtils.updateCameraTranslation(event, "x");
+    document.getElementById("dlry").onchange = (event) =>
+        webglUtils.updateCameraTranslation(event, "y");
+    document.getElementById("dlrz").onchange = (event) =>
+        webglUtils.updateCameraTranslation(event, "z");
+
     // create and use a GLSL program
     const program = webglUtils.createProgramFromScripts(
         gl,
@@ -155,7 +166,7 @@ const render = () => {
     if (shapes.length === 0) {
         gl.drawArrays(gl.TRIANGLES, 0, 0);
     } else {
-        shapes.forEach((shape, index) => {
+        shapes.forEach((shape) => {
             gl.uniform4f(uniformColor, shape.color.red, shape.color.green, shape.color.blue, 1);
 
             const matrix = computeModelViewMatrix(shape, worldViewProjectionMatrix);
@@ -164,9 +175,9 @@ const render = () => {
             gl.uniformMatrix4fv(uniformWorldViewProjection, false, matrix);
 
             if (shape.type === BOSTON_TEAPOT) {
-                webglUtils.renderTeapot(shape);
+                webglUtils.renderTeapot();
             } else if (shape.type === CUBE) {
-                webglUtils.renderCube(shape);
+                webglUtils.renderCube();
             }
         });
     }
