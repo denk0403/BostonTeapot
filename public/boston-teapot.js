@@ -1734,3 +1734,23 @@ const BOSTON_TEAPOT_BUFFER = [
   0.562400, -1.200000, 0.330300,
   0.458200, -1.255600, 0.269100
 ];
+
+const BOSTON_TEAPOT_NORMALS = BOSTON_TEAPOT_BUFFER.reduce((result, _, index) => {
+    if (index % 3 === 0) {
+        result.push(BOSTON_TEAPOT_BUFFER.slice(index, index + 3));
+    }
+    return result;
+}, [])
+    .reduce((result, _, index, vertices) => {
+        if (index % 3 === 0) {
+            const crossVector = m4.normalize(
+                m4.cross(
+                    m4.subtractVectors(vertices[index + 2], vertices[index]),
+                    m4.subtractVectors(vertices[index + 1], vertices[index]),
+                ),
+            );
+            result.push(crossVector, crossVector, crossVector);
+        }
+        return result;
+    }, [])
+    .flat();

@@ -25,9 +25,10 @@ const UNIT_SIZE = { width: 1, height: 1, depth: 1 };
 
 // Camera constants and values
 const camera = {
-    translation: { x: -45, y: -10, z: -35 },
+    translation: { x: -20, y: 20, z: -20 },
     rotation: { x: 40, y: 235, z: 0 },
 };
+const target = [-10, 0, 5]; // declare the origin as the target we'll look at
 
 // Light Source constants
 const lightSource = [0.4, 0.3, 0.5];
@@ -36,24 +37,6 @@ const lightSource = [0.4, 0.3, 0.5];
  * @type {Shape[]}
  */
 const shapes = [
-    // {
-    //     type: RECTANGLE,
-    //     center: ORIGIN,
-    //     dimensions: { ...UNIT_SIZE },
-    //     color: { ...BLUE_RGB },
-    //     translation: { x: -15, y: 0, z: -20 },
-    //     rotation: { x: 0, y: 0, z: 0 },
-    //     scale: { x: 10, y: 10, z: 10 },
-    // },
-    // {
-    //     type: TRIANGLE,
-    //     center: ORIGIN,
-    //     dimensions: { ...UNIT_SIZE },
-    //     color: { ...RED_RGB },
-    //     translation: { x: 15, y: 0, z: -20 },
-    //     scale: { x: 10, y: 10, z: 10 },
-    //     rotation: { x: 0, y: 0, z: 180 },
-    // },
     {
         type: CUBE,
         center: ORIGIN,
@@ -73,30 +56,12 @@ const shapes = [
         rotation: { x: 0, y: 0, z: 0 },
     },
     {
-        type: CUBE,
+        type: BOSTON_TEAPOT,
         center: ORIGIN,
         dimensions: { ...UNIT_SIZE },
         color: { ...RED_RGB },
-        translation: { x: -20, y: 0, z: 0 },
-        scale: { x: 0.5, y: 0.5, z: 0.5 },
-        rotation: { x: 0, y: 0, z: 0 },
+        translation: { x: -20, y: 0, z: 5 },
+        scale: { x: 10, y: 10, z: 10 },
+        rotation: { x: 0, y: 30, z: 180 },
     },
-    // {
-    //     type: LETTER_F,
-    //     center: ORIGIN,
-    //     dimensions: { ...UNIT_SIZE },
-    //     color: { ...BLUE_RGB },
-    //     translation: { x: -150, y: 0, z: -360 },
-    //     scale: { x: 1, y: 1, z: 1 },
-    //     rotation: { x: m4.degToRad(190), y: m4.degToRad(40), z: m4.degToRad(320) },
-    // },
-    // {
-    //     type: LETTER_F,
-    //     center: ORIGIN,
-    //     dimensions: { ...UNIT_SIZE },
-    //     color: { ...RED_RGB },
-    //     translation: { x: -100, y: 0, z: -400 },
-    //     scale: { x: 1, y: 1, z: 1 },
-    //     rotation: { x: m4.degToRad(190), y: m4.degToRad(40), z: m4.degToRad(320) },
-    // },
 ];

@@ -4,42 +4,18 @@ const m4 = {
         const rangeInv = 1.0 / (near - far);
 
         return [
-            f / aspect,
-            0,
-            0,
-            0,
-            0,
-            f,
-            0,
-            0,
-            0,
-            0,
-            (near + far) * rangeInv,
-            -1,
-            0,
-            0,
-            near * far * rangeInv * 2,
-            0,
+            f / aspect, 0, 0, 0,
+            0, f, 0, 0,
+            0, 0, (near + far) * rangeInv, -1,
+            0, 0, near * far * rangeInv * 2, 0,
         ];
     },
 
     projection: (width, height, depth) => [
-        2 / width,
-        0,
-        0,
-        0,
-        0,
-        -2 / height,
-        0,
-        0,
-        0,
-        0,
-        2 / depth,
-        0,
-        -1,
-        1,
-        0,
-        1,
+        2 / width, 0, 0, 0,
+        0, -2 / height, 0, 0,
+        0, 0, 2 / depth, 0,
+        -1, 1, 0, 1,
     ],
 
     multiply: (a, b) => {
@@ -309,7 +285,11 @@ const m4 = {
         return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
     },
 
-    identity: () => [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+    identity: () => [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1],
 
     transpose: (m) => {
         const m00 = m[0 * 4 + 0];
@@ -330,5 +310,9 @@ const m4 = {
         const m33 = m[3 * 4 + 3];
 
         return [m00, m10, m20, m30, m01, m11, m21, m31, m02, m12, m22, m32, m03, m13, m23, m33];
+    },
+
+    negate: (v) => {
+        return [-v[0], -v[1], -v[2]];
     },
 };

@@ -1,7 +1,6 @@
 "use strict";
 
 const up = [0, 1, 0]; // declare up to be in +y direction
-let target = [5, 5, 5]; // declare the origin as the target we'll look at
 let lookAt = true; // we'll toggle lookAt on and off
 
 /** @type {WebGLRenderingContext} */
@@ -165,7 +164,7 @@ const render = () => {
             gl.uniformMatrix4fv(uniformWorldViewProjection, false, matrix);
 
             if (shape.type === BOSTON_TEAPOT) {
-                webglUtils.renderRectangle(shape);
+                webglUtils.renderTeapot(shape);
             } else if (shape.type === CUBE) {
                 webglUtils.renderCube(shape);
             }
