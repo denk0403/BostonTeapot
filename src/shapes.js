@@ -25,7 +25,7 @@ const UNIT_SIZE = { width: 1, height: 1, depth: 1 };
 
 // Camera constants and values
 const camera = {
-    translation: { x: -20, y: 20, z: -20 },
+    translation: { x: -20, y: 35, z: -35 },
     rotation: { x: 0, y: 0, z: 0 },
 };
 const target = [-10, 0, 5]; // declare the origin as the target we'll look at

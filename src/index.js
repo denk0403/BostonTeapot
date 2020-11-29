@@ -39,11 +39,11 @@ const init = () => {
     document.getElementById("dlry").value = camera.translation.y;
     document.getElementById("dlrz").value = camera.translation.z;
 
-    document.getElementById("dlrx").onchange = (event) =>
+    document.getElementById("dlrx").oninput = (event) =>
         webglUtils.updateCameraTranslation(event, "x");
-    document.getElementById("dlry").onchange = (event) =>
+    document.getElementById("dlry").oninput = (event) =>
         webglUtils.updateCameraTranslation(event, "y");
-    document.getElementById("dlrz").onchange = (event) =>
+    document.getElementById("dlrz").oninput = (event) =>
         webglUtils.updateCameraTranslation(event, "z");
 
     // create and use a GLSL program
