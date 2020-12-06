@@ -5,7 +5,7 @@ function linearInterp(startVal, endVal, fraction) {
 function linearInterpObj(startObj, endObj, fraction) {
     const result = {};
     for (const prop in startObj) {
-        result[prop] = linearInterp(startObj[prop], endObj[prop], fraction);
+        result[prop] = linearInterp(Number(startObj[prop]) || 0, Number(endObj[prop]) || 0, fraction);
     }
     return result;
 }

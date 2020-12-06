@@ -21,6 +21,11 @@ let bufferCoords; // sends geometry to GPU
 /** @type {Number} */
 let selectedShapeIndex = 0; // The index of the currently selected shape in the shapes array
 
+let scene;
+let threeCamera;
+let renderer;
+let controls;
+
 let attributeNormals; // links to shader's a_normal
 let uniformWorldViewProjection; // links to shader's u_worldViewProjection
 let uniformWorldInverseTranspose; // links to shader's u_worldInverseTranspose
@@ -32,62 +37,135 @@ const init = () => {
     /**@type {HTMLCanvasElement} */
     const canvas = document.querySelector("#canvas");
 
-    // Get WebGL context
-    gl = canvas.getContext("webgl");
+    scene = new THREE.Scene();
+    threeCamera = new THREE.PerspectiveCamera(90, canvas.width / canvas.height, 0.1, 1000);
+    threeCamera.position.set(0, 3, 7);
 
-    document.getElementById("dlrx").value = camera.translation.x;
-    document.getElementById("dlry").value = camera.translation.y;
-    document.getElementById("dlrz").value = camera.translation.z;
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
 
-    document.getElementById("dlrx").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "x");
-    document.getElementById("dlry").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "y");
-    document.getElementById("dlrz").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "z");
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.autoUpdate = true;
 
-    // create and use a GLSL program
-    const program = webglUtils.createProgramFromScripts(
-        gl,
-        "#vertex-shader-3d",
-        "#fragment-shader-3d",
+    controls = new OrbitControls(threeCamera, canvas);
+
+    const ambientColor = 0xffffff;
+    const ambientIntensity = 0.5;
+    const directionalColor = 0xffffff;
+    const directionalIntensity = 0.5;
+    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
+    const directionalLight = new THREE.DirectionalLight(directionalColor, directionalIntensity);
+    directionalLight.position.set(0, 10, 0);
+    directionalLight.target.position.set(0, 0, 0);
+
+    const floorGeo = new THREE.PlaneGeometry(50, 50);
+    const floorMat = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+    });
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.rotation.x = Math.PI * -0.5;
+
+    // instantiate a loader
+    const loader = new OBJLoader();
+    //loader.setMaterials(new THREE.MeshPhongMaterial( {color: '#0000FF'} ));
+    // load a resource
+    loader.load(
+        // resource URL
+        "src/obj_files/boston_teapot.obj",
+        // called when resource is loaded
+        (obj) => {
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+            obj.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                }
+            });
+            scene.add(obj);
+        },
+        // called when loading is in progresses
+        (xhr) => console.log((xhr.loaded / xhr.total) * 100 + "% loaded"),
+        // called when loading has errors
+        (error) => console.error("Something went wrong loading Teapot OBJ File", error),
     );
-    gl.useProgram(program);
 
-    // get reference to GLSL attributes and uniforms
-    attributeCoords = gl.getAttribLocation(program, "a_coords");
-    uniformMatrix = gl.getUniformLocation(program, "u_matrix");
-    const uniformResolution = gl.getUniformLocation(program, "u_resolution");
-    uniformColor = gl.getUniformLocation(program, "u_color");
+    const cubeSize = 4;
+    const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize);
+    const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
+    const cubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
+    cubeMesh.position.set(0, cubeSize / 2 + 9, 0);
 
-    // initialize coordinate attribute to send each vertex to GLSL program
-    gl.enableVertexAttribArray(attributeCoords);
+    cubeMesh.receiveShadow = true;
+    cubeMesh.castShadow = true;
+    scene.add(cubeMesh);
 
-    // initialize coordinate buffer to send array of vertices to GPU
-    bufferCoords = gl.createBuffer();
+    directionalLight.castShadow = true;
+    floorMesh.receiveShadow = true;
 
-    // get the "a_normals" attribute
-    attributeNormals = gl.getAttribLocation(program, "a_normals");
-    // enable it
-    gl.enableVertexAttribArray(attributeNormals);
-    // create a buffer to send normals
-    normalBuffer = gl.createBuffer();
+    scene.add(floorMesh);
+    scene.add(directionalLight);
+    scene.add(ambientLight);
+    scene.add(directionalLight.target);
 
-    // Get various uniforms:
-    // u_worldViewProjection
-    uniformWorldViewProjection = gl.getUniformLocation(program, "u_worldViewProjection");
-    // u_worldInverseTranspose
-    uniformWorldInverseTranspose = gl.getUniformLocation(program, "u_worldInverseTranspose");
-    // u_reverseLightDirection
-    uniformReverseLightDirectionLocation = gl.getUniformLocation(
-        program,
-        "u_reverseLightDirection",
-    );
+    const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+    scene.add(cameraHelper);
 
-    // configure canvas resolution and clear the canvas
-    gl.uniform2f(uniformResolution, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // // Get WebGL context
+    // gl = canvas.getContext("webgl2");
+
+    // document.getElementById("dlrx").value = camera.translation.x;
+    // document.getElementById("dlry").value = camera.translation.y;
+    // document.getElementById("dlrz").value = camera.translation.z;
+
+    // document.getElementById("dlrx").oninput = (event) =>
+    //     webglUtils.updateCameraTranslation(event, "x");
+    // document.getElementById("dlry").oninput = (event) =>
+    //     webglUtils.updateCameraTranslation(event, "y");
+    // document.getElementById("dlrz").oninput = (event) =>
+    //     webglUtils.updateCameraTranslation(event, "z");
+
+    // // create and use a GLSL program
+    // const program = webglUtils.createProgramFromScripts(
+    //     gl,
+    //     "#vertex-shader-3d",
+    //     "#fragment-shader-3d",
+    // );
+    // gl.useProgram(program);
+
+    // // get reference to GLSL attributes and uniforms
+    // attributeCoords = gl.getAttribLocation(program, "a_coords");
+    // uniformMatrix = gl.getUniformLocation(program, "u_matrix");
+    // const uniformResolution = gl.getUniformLocation(program, "u_resolution");
+    // uniformColor = gl.getUniformLocation(program, "u_color");
+
+    // // initialize coordinate attribute to send each vertex to GLSL program
+    // gl.enableVertexAttribArray(attributeCoords);
+
+    // // initialize coordinate buffer to send array of vertices to GPU
+    // bufferCoords = gl.createBuffer();
+
+    // // get the "a_normals" attribute
+    // attributeNormals = gl.getAttribLocation(program, "a_normals");
+    // // enable it
+    // gl.enableVertexAttribArray(attributeNormals);
+    // // create a buffer to send normals
+    // normalBuffer = gl.createBuffer();
+
+    // // Get various uniforms:
+    // // u_worldViewProjection
+    // uniformWorldViewProjection = gl.getUniformLocation(program, "u_worldViewProjection");
+    // // u_worldInverseTranspose
+    // uniformWorldInverseTranspose = gl.getUniformLocation(program, "u_worldInverseTranspose");
+    // // u_reverseLightDirection
+    // uniformReverseLightDirectionLocation = gl.getUniformLocation(
+    //     program,
+    //     "u_reverseLightDirection",
+    // );
+
+    // // configure canvas resolution and clear the canvas
+    // gl.uniform2f(uniformResolution, gl.canvas.width, gl.canvas.height);
+    // gl.clearColor(0, 0, 0, 0);
+    // gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 };
 
 /**
@@ -115,70 +193,7 @@ const fieldOfViewRadians = m4.degToRad(90);
  * Renders the array of shapes onto the WebGL canvas.
  */
 const render = () => {
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferCoords);
-    gl.vertexAttribPointer(attributeCoords, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.vertexAttribPointer(attributeNormals, 3, gl.FLOAT, false, 0, 0);
-
-    gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
-
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 1;
-    const zFar = 2000;
-
-    let cameraMatrix = m4.identity();
-    if (lookAt) {
-        cameraMatrix = m4.translate(
-            cameraMatrix,
-            camera.translation.x,
-            camera.translation.y,
-            camera.translation.z,
-        );
-        const cameraPosition = [cameraMatrix[12], cameraMatrix[13], cameraMatrix[14]];
-        cameraMatrix = m4.lookAt(cameraPosition, target, up);
-        cameraMatrix = m4.inverse(cameraMatrix);
-    } else {
-        cameraMatrix = m4.zRotate(cameraMatrix, m4.degToRad(camera.rotation.z));
-        cameraMatrix = m4.xRotate(cameraMatrix, m4.degToRad(camera.rotation.x));
-        cameraMatrix = m4.yRotate(cameraMatrix, m4.degToRad(camera.rotation.y));
-        cameraMatrix = m4.translate(
-            cameraMatrix,
-            camera.translation.x,
-            camera.translation.y,
-            camera.translation.z,
-        );
-    }
-    const projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-    const viewProjectionMatrix = m4.multiply(projectionMatrix, cameraMatrix);
-
-    const worldMatrix = m4.identity();
-    const worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
-    const worldInverseMatrix = m4.inverse(worldMatrix);
-    const worldInverseTransposeMatrix = m4.transpose(worldInverseMatrix);
-
-    gl.uniformMatrix4fv(uniformWorldViewProjection, false, worldViewProjectionMatrix);
-    gl.uniformMatrix4fv(uniformWorldInverseTranspose, false, worldInverseTransposeMatrix);
-
-    gl.uniform3fv(uniformReverseLightDirectionLocation, m4.normalize(lightSource));
-
-    if (shapes.length === 0) {
-        gl.drawArrays(gl.TRIANGLES, 0, 0);
-    } else {
-        shapes.forEach((shape) => {
-            gl.uniform4f(uniformColor, shape.color.red, shape.color.green, shape.color.blue, 1);
-
-            const matrix = computeModelViewMatrix(shape, worldViewProjectionMatrix);
-
-            // apply transformation matrix.
-            gl.uniformMatrix4fv(uniformWorldViewProjection, false, matrix);
-
-            if (shape.type === BOSTON_TEAPOT) {
-                webglUtils.renderTeapot();
-            } else if (shape.type === CUBE) {
-                webglUtils.renderCube();
-            }
-        });
-    }
+    requestAnimationFrame(render);
+    controls.update();
+    renderer.render(scene, threeCamera);
 };
