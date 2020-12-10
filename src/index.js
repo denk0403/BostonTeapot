@@ -66,21 +66,33 @@ const init = () => {
 
     // instantiate a loader
     const loader = new OBJLoader();
+    const loader2 = new THREE.TextureLoader();
+    const texture = new THREE.TextureLoader().load( 'clay.jpg');
+    const texture2 = new THREE.TextureLoader().load( 'clay2.jpg');
+    const material = new THREE.MeshStandardMaterial( { map: texture } );
+    const material2 = new THREE.MeshStandardMaterial( { map: texture2 } );
     //loader.setMaterials(new THREE.MeshPhongMaterial( {color: '#0000FF'} ));
     // load a resource
     loader.load(
         // resource URL
-        "src/obj_files/boston_teapot.obj",
+        "src/obj_files/teapot.obj",
         // called when resource is loaded
         (obj) => {
-            obj.castShadow = true;
-            obj.receiveShadow = true;
             obj.traverse((node) => {
                 if (node instanceof THREE.Mesh) {
                     node.castShadow = true;
                     node.receiveShadow = true;
+                    node.material = material;
+                    node.material.bumpMap = new THREE.TextureLoader().load( 'clay.jpg');
+                    node.material.bumpScale = 3.0
                 }
+                // new THREE.MeshPhongMaterial({
+                //     color:0xffffff,
+                //     map:material
+                // })
             });
+            obj.castShadow = true;
+            obj.receiveShadow = true;
             scene.add(obj);
         },
         // called when loading is in progresses
