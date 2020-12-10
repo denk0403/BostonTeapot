@@ -32,6 +32,7 @@ const init = () => {
     /**@type {HTMLCanvasElement} */
     const canvas = document.querySelector("#canvas");
 
+<<<<<<< Updated upstream
     // Get WebGL context
     gl = canvas.getContext("webgl");
 
@@ -82,6 +83,70 @@ const init = () => {
     uniformReverseLightDirectionLocation = gl.getUniformLocation(
         program,
         "u_reverseLightDirection",
+=======
+    scene = new THREE.Scene();
+    threeCamera = new THREE.PerspectiveCamera(90, canvas.width / canvas.height, 0.1, 1000);
+    threeCamera.position.set(0, 3, 7);
+
+    renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.autoUpdate = true;
+
+    controls = new OrbitControls(threeCamera, canvas);
+
+    const ambientColor = 0xffffff;
+    const ambientIntensity = 0.5;
+    const directionalColor = 0xffffff;
+    const directionalIntensity = 0.5;
+    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
+    const directionalLight = new THREE.DirectionalLight(directionalColor, directionalIntensity);
+    directionalLight.position.set(0, 10, 0);
+    directionalLight.target.position.set(0, 0, 0);
+
+    const floorGeo = new THREE.PlaneGeometry(50, 50);
+    const floorMat = new THREE.MeshPhongMaterial({
+        side: THREE.DoubleSide,
+    });
+    const floorMesh = new THREE.Mesh(floorGeo, floorMat);
+    floorMesh.rotation.x = Math.PI * -0.5;
+
+    // instantiate a loader
+    const loader = new OBJLoader();
+    const loader2 = new THREE.TextureLoader();
+    const texture = new THREE.TextureLoader().load( 'clay.jpg');
+    const texture2 = new THREE.TextureLoader().load( 'clay2.jpg');
+    const material = new THREE.MeshStandardMaterial( { map: texture } );
+    const material2 = new THREE.MeshStandardMaterial( { map: texture2 } );
+    //loader.setMaterials(new THREE.MeshPhongMaterial( {color: '#0000FF'} ));
+    // load a resource
+    loader.load(
+        // resource URL
+        "src/obj_files/teapot.obj",
+        // called when resource is loaded
+        (obj) => {
+            obj.traverse((node) => {
+                if (node instanceof THREE.Mesh) {
+                    node.castShadow = true;
+                    node.receiveShadow = true;
+                    node.material = material;
+                    node.material.bumpMap = new THREE.TextureLoader().load( 'clay.jpg');
+                    node.material.bumpScale = 3.0
+                }
+                // new THREE.MeshPhongMaterial({
+                //     color:0xffffff,
+                //     map:material
+                // })
+            });
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+            scene.add(obj);
+        },
+        // called when loading is in progresses
+        (xhr) => console.log((xhr.loaded / xhr.total) * 100 + "% loaded"),
+        // called when loading has errors
+        (error) => console.error("Something went wrong loading Teapot OBJ File", error),
+>>>>>>> Stashed changes
     );
 
     // configure canvas resolution and clear the canvas
