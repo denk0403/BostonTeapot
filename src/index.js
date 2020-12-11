@@ -60,6 +60,7 @@ const init = () => {
     const floorGeo = new THREE.PlaneGeometry(50, 50);
     const floorMat = new THREE.MeshPhongMaterial({
         side: THREE.DoubleSide,
+        map: new THREE.TextureLoader().load('./wood.jpg'),
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = Math.PI * -0.5;
@@ -82,9 +83,10 @@ const init = () => {
                 if (node instanceof THREE.Mesh) {
                     node.castShadow = true;
                     node.receiveShadow = true;
+                    node.position.set(0, 1, 0)
                     node.material = material;
                     node.material.bumpMap = new THREE.TextureLoader().load( 'clay.jpg');
-                    node.material.bumpScale = 3.0
+                    node.material.bumpScale = 0.9
                 }
                 // new THREE.MeshPhongMaterial({
                 //     color:0xffffff,
@@ -105,7 +107,7 @@ const init = () => {
     const cubeGeo = new THREE.BoxBufferGeometry(cubeSize, cubeSize, cubeSize);
     const cubeMat = new THREE.MeshPhongMaterial({ color: "#8AC" });
     const cubeMesh = new THREE.Mesh(cubeGeo, cubeMat);
-    cubeMesh.position.set(0, cubeSize / 2 + 9, 0);
+    cubeMesh.position.set(10, cubeSize / 2 + 1, 0);
 
     cubeMesh.receiveShadow = true;
     cubeMesh.castShadow = true;
