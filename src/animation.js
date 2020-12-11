@@ -5,15 +5,29 @@ function linearInterp(startVal, endVal, fraction) {
 function linearInterpObj(startObj, endObj, fraction) {
     const result = {};
     for (const prop in startObj) {
-        result[prop] = linearInterp(Number(startObj[prop]) || 0, Number(endObj[prop]) || 0, fraction);
+        result[prop] = linearInterp(
+            Number(startObj[prop]) || 0,
+            Number(endObj[prop]) || 0,
+            fraction,
+        );
     }
     return result;
 }
 
-const translationStart = { x: -20, y: 0, z: 5 };
-const rotationStart = { x: 0, y: 0, z: 180 };
-const translationEnd = { x: -20, y: 15, z: 5 };
-const rotationEnd = { x: 0, y: 0, z: 210 };
+function updateTeapotPosition(position) {
+    teapot?.position.set(position.x, position.y, position.z);
+    return teapot?.position;
+}
+
+function updateTeapotRotation(rotation) {
+    teapot?.rotation.set(rotation.x, rotation.y, rotation.z);
+    return teapot?.rotation;
+}
+
+const positionStart = { x: 0, y: 0, z: 0 };
+const rotationStart = { x: 0, y: 0, z: 0 };
+const positionEnd = { x: 0, y: 5, z: 0 };
+const rotationEnd = { x: 0, y: 0, z: -Math.PI / 4 };
 
 let time = 0;
 let stopSignal = false;
@@ -22,30 +36,32 @@ const POUR_DURATION = 1000;
 const POUR_PAUSE_DURATION = 2000;
 const ANIMATION_DURATION = 2 * (POUR_DURATION + POUR_PAUSE_DURATION);
 
-const teapot = shapes[2];
-
 function updateTeapot(timestamp) {
     const passedTime = (timestamp - time) % ANIMATION_DURATION;
     if (passedTime < POUR_DURATION) {
-        teapot.translation = linearInterpObj(
-            translationStart,
-            translationEnd,
-            passedTime / POUR_DURATION,
+        updateTeapotPosition(
+            linearInterpObj(positionStart, positionEnd, passedTime / POUR_DURATION),
         );
-        teapot.rotation = linearInterpObj(rotationStart, rotationEnd, passedTime / POUR_DURATION);
+        updateTeapotRotation(
+            linearInterpObj(rotationStart, rotationEnd, passedTime / POUR_DURATION),
+        );
     } else if (
         passedTime > POUR_DURATION + POUR_PAUSE_DURATION &&
         passedTime < ANIMATION_DURATION - POUR_PAUSE_DURATION
     ) {
-        teapot.translation = linearInterpObj(
-            translationStart,
-            translationEnd,
-            (ANIMATION_DURATION - POUR_PAUSE_DURATION - passedTime) / POUR_DURATION,
+        updateTeapotPosition(
+            linearInterpObj(
+                positionStart,
+                positionEnd,
+                (ANIMATION_DURATION - POUR_PAUSE_DURATION - passedTime) / POUR_DURATION,
+            ),
         );
-        teapot.rotation = linearInterpObj(
-            rotationStart,
-            rotationEnd,
-            (ANIMATION_DURATION - POUR_PAUSE_DURATION - passedTime) / POUR_DURATION,
+        updateTeapotRotation(
+            linearInterpObj(
+                rotationStart,
+                rotationEnd,
+                (ANIMATION_DURATION - POUR_PAUSE_DURATION - passedTime) / POUR_DURATION,
+            ),
         );
     }
 }
@@ -54,7 +70,6 @@ function doAnimation() {
     if (!stopSignal) {
         window.requestAnimationFrame((timestamp) => {
             updateTeapot(timestamp);
-            render();
             if (
                 !completeSignal ||
                 (timestamp - time) % ANIMATION_DURATION < ANIMATION_DURATION - POUR_PAUSE_DURATION
