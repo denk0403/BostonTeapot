@@ -1,0 +1,232 @@
+html,
+body {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    padding: 10px;
+    background-color: rgb(229, 242, 228);
+}
+
+canvas {
+    width: 95%;
+    border: 1px solid gray;
+    border-radius: 10px;
+}
+
+input[type="range"] {
+    width: 400px;
+}
+
+.title {
+    font-size: 2.5em;
+    padding: 5px 0;
+    text-align: center;
+    font-weight: bold;
+}
+
+.title:hover {
+    transform: translateX(30px);
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-image: linear-gradient(to right, black, black);
+    animation: titleAnim 0.5s linear;
+}
+
+.title::after {
+    opacity: 0;
+    content: "";
+}
+
+.title:hover::after {
+    display: inline-block;
+    content: "🫖";
+    background-clip: initial;
+    -webkit-background-clip: initial;
+    -webkit-text-fill-color: initial;
+    background-image: initial;
+    margin: 0 10px;
+    opacity: 1;
+    animation: teapotTitle 0.3s linear 0.33s;
+    transition: opacity 0.3s linear 0.33s;
+}
+
+@keyframes teapotTitle {
+    from {
+        transform: translateX(-15px);
+    }
+
+    to {
+        transform: translateX(5);
+    }
+}
+
+@keyframes titleAnim {
+    0% {
+        background-image: linear-gradient(to right, black 48%, white 50%, black 52%);
+        background-position: -200px 0;
+    }
+
+    100% {
+        background-image: linear-gradient(to right, black 48%, white 50%, black 52%);
+        background-position: 200px 0;
+    }
+}
+
+.animation_button_controls .icon {
+    width: 25px;
+}
+
+.animation_button_controls button {
+    width: 67px;
+    padding: 7px;
+    border-radius: 7px;
+}
+
+.animation_button_controls button:hover {
+    filter: brightness(0.9);
+}
+
+.animation_button_controls button:active {
+    filter: brightness(0.75);
+}
+
+.animation_button_controls button + button {
+    margin-left: 10px;
+}
+
+.camera_controls {
+    width: min(75%, 550px);
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 100px;
+}
+
+.camera_button_controls button {
+    padding: 7px;
+    border-radius: 7px;
+}
+
+.camera_button_controls button + button {
+    margin-left: 10px;
+}
+
+.camera_button_controls button:hover {
+    filter: brightness(0.9);
+}
+
+.camera_button_controls button:active {
+    filter: brightness(0.75);
+}
+
+.panButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(2, 45px);
+}
+
+.panButtons > button {
+    margin: 2.5px;
+    border-radius: 7px;
+    font-size: large;
+}
+
+.panButtons > button:hover {
+    filter: brightness(0.9);
+}
+
+.panButtons > button:active {
+    filter: brightness(0.75);
+}
+
+.content {
+    display: grid;
+    grid-template-columns: 65% 33%;
+    column-gap: 10px;
+    height: 100%;
+}
+
+.project {
+    display: flex;
+    flex-direction: column;
+    place-items: center;
+}
+
+.description {
+    background-color: rgb(158, 240, 255);
+    padding: 10px 20px;
+    border-radius: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.description embed {
+    width: 100%;
+    display: flex;
+    flex: 1;
+}
+
+.center-text {
+    text-align: center;
+}
+
+input[type="range"] {
+    width: 90%;
+    -webkit-appearance: none;
+    margin: 18px 0;
+}
+
+input[type="range"]:focus {
+    outline: none;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+    width: 100%;
+    height: 8.4px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    background: #3071a9;
+    border-radius: 1.3px;
+    border: 0.2px solid #010101;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    border: 1px solid #000000;
+    height: 32px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+    -webkit-appearance: none;
+    margin-top: -14px;
+}
+
+input[type="range"]:focus::-webkit-slider-runnable-track {
+    background: #367ebd;
+}
+
+input[type="range"]::-moz-range-track {
+    width: 100%;
+    height: 8.4px;
+    cursor: pointer;
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    background: #3071a9;
+    border-radius: 1.3px;
+    border: 0.2px solid #010101;
+}
+
+input[type="range"]::-moz-range-thumb {
+    box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d;
+    border: 1px solid #000000;
+    height: 36px;
+    width: 16px;
+    border-radius: 3px;
+    background: #ffffff;
+    cursor: pointer;
+}

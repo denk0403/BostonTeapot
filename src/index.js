@@ -1,184 +1,214 @@
 "use strict";
 
-const up = [0, 1, 0]; // declare up to be in +y direction
-let lookAt = true; // we'll toggle lookAt on and off
+let scene;
+let threeCamera;
+let renderer;
+let controls;
+let teapot;
 
-/** @type {WebGLRenderingContext} */
-let gl; // reference to canvas's WebGL context, main API
+let STOP_RENDER_FLAG = false;
 
-/** @type {Number} */
-let attributeCoords; // sets 2D location of shapes
+// instantiate a OBJ file loader
+const objLoader = new OBJLoader();
+const textureLoader = new THREE.TextureLoader();
 
-/** @type {WebGLUniformLocation} */
-let uniformMatrix; // sets transformation matrix of shapes
-
-/** @type {WebGLUniformLocation} */
-let uniformColor; // sets the color of the squares
-
-/** @type {WebGLBuffer} */
-let bufferCoords; // sends geometry to GPU
-
-/** @type {Number} */
-let selectedShapeIndex = 0; // The index of the currently selected shape in the shapes array
-
-let attributeNormals; // links to shader's a_normal
-let uniformWorldViewProjection; // links to shader's u_worldViewProjection
-let uniformWorldInverseTranspose; // links to shader's u_worldInverseTranspose
-let uniformReverseLightDirectionLocation; // links to shader's u_reverseLightDirectionLocation
-let normalBuffer; // buffer to send normals to GPU
+const resetCamera = () => {
+    controls.reset();
+};
 
 const init = () => {
     // get a reference to the canvas
     /**@type {HTMLCanvasElement} */
     const canvas = document.querySelector("#canvas");
 
-    // Get WebGL context
-    gl = canvas.getContext("webgl");
+    // --- Setup Scene ---
+    scene = new THREE.Scene();
+    const sceneBackgorund = textureLoader.load("./img/living_room_blur.jpg");
+    scene.background = sceneBackgorund;
 
-    document.getElementById("dlrx").value = camera.translation.x;
-    document.getElementById("dlry").value = camera.translation.y;
-    document.getElementById("dlrz").value = camera.translation.z;
+    // --- Setup Camera ---
+    threeCamera = new THREE.PerspectiveCamera(90, canvas.width / canvas.height, 0.1, 1000);
+    threeCamera.position.set(0, 4, 7);
 
-    document.getElementById("dlrx").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "x");
-    document.getElementById("dlry").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "y");
-    document.getElementById("dlrz").oninput = (event) =>
-        webglUtils.updateCameraTranslation(event, "z");
+    // --- Setup Renderer ---
+    renderer = new THREE.WebGLRenderer({ canvas: canvas });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.autoUpdate = true;
 
-    // create and use a GLSL program
-    const program = webglUtils.createProgramFromScripts(
-        gl,
-        "#vertex-shader-3d",
-        "#fragment-shader-3d",
-    );
-    gl.useProgram(program);
+    // --- Setup Camera controls ---
+    controls = new OrbitControls(threeCamera, canvas);
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.target.set(0, 3, 0);
+    controls.enableKeys = true;
+    controls.saveState();
 
-    // get reference to GLSL attributes and uniforms
-    attributeCoords = gl.getAttribLocation(program, "a_coords");
-    uniformMatrix = gl.getUniformLocation(program, "u_matrix");
-    const uniformResolution = gl.getUniformLocation(program, "u_resolution");
-    uniformColor = gl.getUniformLocation(program, "u_color");
+    // Setup Keyboard controls
+    initializeKeyboardHandlers(canvas);
 
-    // initialize coordinate attribute to send each vertex to GLSL program
-    gl.enableVertexAttribArray(attributeCoords);
+    // --- Setup Lighting ---
+    // Ambient Light
+    const ambientColor = 0xffffff; // white
+    const ambientIntensity = 0.5;
+    const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
+    scene.add(ambientLight);
+    // Directional Light
+    const directionalColor = 0xffffff; // white
+    const directionalIntensity = 0.67;
+    const directionalLight = new THREE.DirectionalLight(directionalColor, directionalIntensity);
+    directionalLight.castShadow = true;
+    directionalLight.position.set(0, 25, 20);
+    directionalLight.shadow.mapSize.width = 2 ** 15;
+    directionalLight.shadow.mapSize.height = 2 ** 15;
+    directionalLight.shadow.camera.top = 25;
+    directionalLight.shadow.camera.bottom = -25;
+    directionalLight.shadow.camera.left = 25;
+    directionalLight.shadow.camera.right = -25;
+    scene.add(directionalLight);
 
-    // initialize coordinate buffer to send array of vertices to GPU
-    bufferCoords = gl.createBuffer();
+    // Setup ground plane
+    const groundPlane = new THREE.PlaneGeometry(25, 25);
+    const groundMaterial = new THREE.MeshStandardMaterial({
+        side: THREE.DoubleSide,
+        map: new THREE.TextureLoader().load("./img/floorboard.jpg"),
+        bumpMap: new THREE.TextureLoader().load("./img/floorboard-bump.jpg"),
+        bumpScale: 1.75,
+    });
+    const groundMesh = new THREE.Mesh(groundPlane, groundMaterial);
+    groundMesh.receiveShadow = true;
+    groundMesh.rotation.x = Math.PI * -0.5; // rotates to be horizontal
+    scene.add(groundMesh);
 
-    // get the "a_normals" attribute
-    attributeNormals = gl.getAttribLocation(program, "a_normals");
-    // enable it
-    gl.enableVertexAttribArray(attributeNormals);
-    // create a buffer to send normals
-    normalBuffer = gl.createBuffer();
+    // Teapot
+    const texture = new THREE.TextureLoader().load("./img/teapot.jpg");
+    const material = new THREE.MeshStandardMaterial({ map: texture });
+    // Load and add Boston Teapot to scene
+    loadObjFile("src/obj_files/boston_teapot.obj", (obj) => {
+        // For any meshes in the model, add our material.
+        teapot = obj;
+        obj.traverse((node) => {
+            if (node.isMesh) {
+                node.material = material;
+            }
+        });
+    });
 
-    // Get various uniforms:
-    // u_worldViewProjection
-    uniformWorldViewProjection = gl.getUniformLocation(program, "u_worldViewProjection");
-    // u_worldInverseTranspose
-    uniformWorldInverseTranspose = gl.getUniformLocation(program, "u_worldInverseTranspose");
-    // u_reverseLightDirection
-    uniformReverseLightDirectionLocation = gl.getUniformLocation(
-        program,
-        "u_reverseLightDirection",
-    );
+    // Mug
+    const mugTexture = new THREE.TextureLoader().load("./img/mug-texture.png");
+    const mugBumpmap = new THREE.TextureLoader().load("./img/mug-texture-bumpmap.png");
+    // texture.offset.x = 0.5;
+    mugTexture.offset.y = -0.15;
+    // mugBumpmap.offset.x = 0.5;
+    mugBumpmap.offset.y = -0.15;
+    const mugMaterial = new THREE.MeshStandardMaterial({
+        map: mugTexture,
+        bumpMap: mugBumpmap,
+        bumpScale: 2,
+    });
+    // Load and add Mug to scene
+    loadObjFile("src/obj_files/mug.obj", (obj) => {
+        // For any meshes in the model, add our material.
+        obj.position.set(5, 0, 0);
+        obj.traverse((node) => {
+            if (node.isMesh) {
+                node.material = mugMaterial;
+            }
+        });
+    });
 
-    // configure canvas resolution and clear the canvas
-    gl.uniform2f(uniformResolution, gl.canvas.width, gl.canvas.height);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+    // scene.add(cameraHelper);
 };
 
-/**
- * Helper function for returning the transformation matrix for a given shape.
- * @param {Shape} shape
- * @param {number[]} viewProjectionMatrix
- */
-const computeModelViewMatrix = (shape, viewProjectionMatrix) => {
-    let M = m4.translate(
-        viewProjectionMatrix,
-        shape.translation.x,
-        shape.translation.y,
-        shape.translation.z,
+const loadObjFile = (filePath, onload) => {
+    objLoader.load(
+        filePath, // resource URL
+        (obj) => {
+            onload?.(obj);
+            addObjToScene(obj);
+        }, // called when resource is loaded
+        showLoadProgress, // called when loading is in progresse
+        (error) => handleObjLoadError(error, filePath), // called when loading has errors
     );
-    M = m4.xRotate(M, m4.degToRad(shape.rotation.x));
-    M = m4.yRotate(M, m4.degToRad(shape.rotation.y));
-    M = m4.zRotate(M, m4.degToRad(shape.rotation.z));
-    M = m4.scale(M, shape.scale.x, shape.scale.y, shape.scale.z);
-    return M;
 };
 
-const fieldOfViewRadians = m4.degToRad(90);
+const showLoadProgress = (xhr) => {
+    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
+};
+
+const handleObjLoadError = (error, file) => {
+    console.error(`Something went wrong loading ${file}`, error);
+};
+
+const addObjToScene = (obj) => {
+    // enable all shadows
+    obj.castShadow = true;
+    obj.receiveShadow = true;
+    obj.traverse((node) => {
+        if (node.isMesh) {
+            node.castShadow = true;
+            node.receiveShadow = true;
+        }
+    });
+
+    // add object to scene
+    scene.add(obj);
+};
 
 /**
  * Renders the array of shapes onto the WebGL canvas.
  */
 const render = () => {
-    gl.bindBuffer(gl.ARRAY_BUFFER, bufferCoords);
-    gl.vertexAttribPointer(attributeCoords, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.vertexAttribPointer(attributeNormals, 3, gl.FLOAT, false, 0, 0);
-
-    gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
-
-    const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
-    const zNear = 1;
-    const zFar = 2000;
-
-    let cameraMatrix = m4.identity();
-    if (lookAt) {
-        cameraMatrix = m4.translate(
-            cameraMatrix,
-            camera.translation.x,
-            camera.translation.y,
-            camera.translation.z,
-        );
-        const cameraPosition = [cameraMatrix[12], cameraMatrix[13], cameraMatrix[14]];
-        cameraMatrix = m4.lookAt(cameraPosition, target, up);
-        cameraMatrix = m4.inverse(cameraMatrix);
+    if (STOP_RENDER_FLAG) {
+        STOP_RENDER_FLAG = false;
     } else {
-        cameraMatrix = m4.zRotate(cameraMatrix, m4.degToRad(camera.rotation.z));
-        cameraMatrix = m4.xRotate(cameraMatrix, m4.degToRad(camera.rotation.x));
-        cameraMatrix = m4.yRotate(cameraMatrix, m4.degToRad(camera.rotation.y));
-        cameraMatrix = m4.translate(
-            cameraMatrix,
-            camera.translation.x,
-            camera.translation.y,
-            camera.translation.z,
-        );
+        requestAnimationFrame(render);
+        controls.update();
+        renderer.render(scene, threeCamera);
     }
-    const projectionMatrix = m4.perspective(fieldOfViewRadians, aspect, zNear, zFar);
-    const viewProjectionMatrix = m4.multiply(projectionMatrix, cameraMatrix);
+};
 
-    const worldMatrix = m4.identity();
-    const worldViewProjectionMatrix = m4.multiply(viewProjectionMatrix, worldMatrix);
-    const worldInverseMatrix = m4.inverse(worldMatrix);
-    const worldInverseTransposeMatrix = m4.transpose(worldInverseMatrix);
+const initializeKeyboardHandlers = (canvas) => {
+    window.addEventListener("keydown", () => {
+        canvas.focus();
+    });
 
-    gl.uniformMatrix4fv(uniformWorldViewProjection, false, worldViewProjectionMatrix);
-    gl.uniformMatrix4fv(uniformWorldInverseTranspose, false, worldInverseTransposeMatrix);
+    window.addEventListener("keypress", (event) => {
+        switch (event.key) {
+            case "w":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "up arrow", keyCode: 38 }),
+                );
+                break;
+            case "a":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "left arrow", keyCode: 37 }),
+                );
+                break;
+            case "s":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "down arrow", keyCode: 40 }),
+                );
+                break;
+            case "d":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "right arrow", keyCode: 39 }),
+                );
+                break;
+            default:
+                break;
+        }
+    });
 
-    gl.uniform3fv(uniformReverseLightDirectionLocation, m4.normalize(lightSource));
-
-    if (shapes.length === 0) {
-        gl.drawArrays(gl.TRIANGLES, 0, 0);
-    } else {
-        shapes.forEach((shape) => {
-            gl.uniform4f(uniformColor, shape.color.red, shape.color.green, shape.color.blue, 1);
-
-            const matrix = computeModelViewMatrix(shape, worldViewProjectionMatrix);
-
-            // apply transformation matrix.
-            gl.uniformMatrix4fv(uniformWorldViewProjection, false, matrix);
-
-            if (shape.type === BOSTON_TEAPOT) {
-                webglUtils.renderTeapot();
-            } else if (shape.type === CUBE) {
-                webglUtils.renderCube();
-            }
-        });
-    }
+    document.getElementById("up").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "up arrow", keyCode: 38 }));
+    });
+    document.getElementById("left").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "left arrow", keyCode: 37 }));
+    });
+    document.getElementById("down").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "down arrow", keyCode: 40 }));
+    });
+    document.getElementById("right").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "right arrow", keyCode: 39 }));
+    });
 };
