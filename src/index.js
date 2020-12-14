@@ -54,13 +54,24 @@ const init = () => {
     const directionalIntensity = 0.5;
     const ambientLight = new THREE.AmbientLight(ambientColor, ambientIntensity);
     const directionalLight = new THREE.DirectionalLight(directionalColor, directionalIntensity);
-    directionalLight.position.set(0, 10, 0);
+    directionalLight.position.set(0, 40, 0);
     directionalLight.target.position.set(0, 0, 0);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.camera.near = 0.5; // default
+    directionalLight.shadow.camera.far = 50; // default
+    directionalLight.shadow.camera.top = 25;
+    directionalLight.shadow.camera.bottom = -25;
+    directionalLight.shadow.camera.left = 25;
+    directionalLight.shadow.camera.right = -25;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
 
     const floorGeo = new THREE.PlaneGeometry(50, 50);
-    const floorMat = new THREE.MeshPhongMaterial({
+    const floorMat = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
-        map: new THREE.TextureLoader().load('./wood.jpg'),
+        map: new THREE.TextureLoader().load('./floorboard.jpg'),
+        bumpMap: new THREE.TextureLoader().load('./floorboard-bump.jpg'),
+        bumpScale: 1,
     });
     const floorMesh = new THREE.Mesh(floorGeo, floorMat);
     floorMesh.rotation.x = Math.PI * -0.5;
@@ -70,7 +81,8 @@ const init = () => {
     const loader2 = new THREE.TextureLoader();
     const texture = new THREE.TextureLoader().load( 'clay.jpg');
     const texture2 = new THREE.TextureLoader().load( 'clay2.jpg');
-    const material = new THREE.MeshStandardMaterial( { map: texture } );
+    const material = new THREE.MeshPhongMaterial();
+    // const material = new THREE.MeshStandardMaterial( { map: texture } );
     const material2 = new THREE.MeshStandardMaterial( { map: texture2 } );
     //loader.setMaterials(new THREE.MeshPhongMaterial( {color: '#0000FF'} ));
     // load a resource
@@ -83,10 +95,10 @@ const init = () => {
                 if (node instanceof THREE.Mesh) {
                     node.castShadow = true;
                     node.receiveShadow = true;
-                    node.position.set(0, 1, 0)
+                    node.position.set(0, 0, 0)
                     node.material = material;
-                    node.material.bumpMap = new THREE.TextureLoader().load( 'clay.jpg');
-                    node.material.bumpScale = 0.9
+                    //node.material.bumpMap = new THREE.TextureLoader().load( 'clay.jpg');
+                    //node.material.bumpScale = 0.9
                 }
                 // new THREE.MeshPhongMaterial({
                 //     color:0xffffff,
@@ -113,7 +125,6 @@ const init = () => {
     cubeMesh.castShadow = true;
     scene.add(cubeMesh);
 
-    directionalLight.castShadow = true;
     floorMesh.receiveShadow = true;
 
     scene.add(floorMesh);
