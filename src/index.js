@@ -12,6 +12,10 @@ let STOP_RENDER_FLAG = false;
 const objLoader = new OBJLoader();
 const textureLoader = new THREE.TextureLoader();
 
+const resetCamera = () => {
+    controls.reset();
+};
+
 const init = () => {
     // get a reference to the canvas
     /**@type {HTMLCanvasElement} */
@@ -24,7 +28,7 @@ const init = () => {
 
     // --- Setup Camera ---
     threeCamera = new THREE.PerspectiveCamera(90, canvas.width / canvas.height, 0.1, 1000);
-    threeCamera.position.set(0, 3, 7);
+    threeCamera.position.set(0, 4, 7);
 
     // --- Setup Renderer ---
     renderer = new THREE.WebGLRenderer({ canvas: canvas });
@@ -33,6 +37,13 @@ const init = () => {
 
     // --- Setup Camera controls ---
     controls = new OrbitControls(threeCamera, canvas);
+    controls.maxPolarAngle = Math.PI / 2;
+    controls.target.set(0, 3, 0);
+    controls.enableKeys = true;
+    controls.saveState();
+
+    // Setup Keyboard controls
+    initializeKeyboardHandlers(canvas);
 
     // --- Setup Lighting ---
     // Ambient Light
@@ -46,42 +57,66 @@ const init = () => {
     const directionalLight = new THREE.DirectionalLight(directionalColor, directionalIntensity);
     directionalLight.castShadow = true;
     directionalLight.position.set(0, 25, 20);
+    directionalLight.shadow.mapSize.width = 2 ** 15;
+    directionalLight.shadow.mapSize.height = 2 ** 15;
+    directionalLight.shadow.camera.top = 25;
+    directionalLight.shadow.camera.bottom = -25;
+    directionalLight.shadow.camera.left = 25;
+    directionalLight.shadow.camera.right = -25;
     scene.add(directionalLight);
 
     // Setup ground plane
-    const groundPlane = new THREE.PlaneGeometry(50, 50);
-    const groundMaterial = new THREE.MeshPhongMaterial({
+    const groundPlane = new THREE.PlaneGeometry(25, 25);
+    const groundMaterial = new THREE.MeshStandardMaterial({
         side: THREE.DoubleSide,
+        map: new THREE.TextureLoader().load("./img/floorboard.jpg"),
+        bumpMap: new THREE.TextureLoader().load("./img/floorboard-bump.jpg"),
+        bumpScale: 1.75,
     });
     const groundMesh = new THREE.Mesh(groundPlane, groundMaterial);
     groundMesh.receiveShadow = true;
     groundMesh.rotation.x = Math.PI * -0.5; // rotates to be horizontal
     scene.add(groundMesh);
 
+    // Teapot
+    const texture = new THREE.TextureLoader().load("./img/teapot.jpg");
+    const material = new THREE.MeshStandardMaterial({ map: texture });
     // Load and add Boston Teapot to scene
     loadObjFile("src/obj_files/boston_teapot.obj", (obj) => {
         // For any meshes in the model, add our material.
         teapot = obj;
         obj.traverse((node) => {
             if (node.isMesh) {
-                // node.material = material;
+                node.material = material;
             }
         });
     });
 
+    // Mug
+    const mugTexture = new THREE.TextureLoader().load("./img/mug-texture.png");
+    const mugBumpmap = new THREE.TextureLoader().load("./img/mug-texture-bumpmap.png");
+    // texture.offset.x = 0.5;
+    mugTexture.offset.y = -0.15;
+    // mugBumpmap.offset.x = 0.5;
+    mugBumpmap.offset.y = -0.15;
+    const mugMaterial = new THREE.MeshStandardMaterial({
+        map: mugTexture,
+        bumpMap: mugBumpmap,
+        bumpScale: 2,
+    });
     // Load and add Mug to scene
     loadObjFile("src/obj_files/mug.obj", (obj) => {
         // For any meshes in the model, add our material.
         obj.position.set(5, 0, 0);
         obj.traverse((node) => {
             if (node.isMesh) {
-                // node.material = material;
+                node.material = mugMaterial;
             }
         });
     });
 
-    const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
-    scene.add(cameraHelper);
+    // const cameraHelper = new THREE.CameraHelper(directionalLight.shadow.camera);
+    // scene.add(cameraHelper);
 };
 
 const loadObjFile = (filePath, onload) => {
@@ -130,4 +165,50 @@ const render = () => {
         controls.update();
         renderer.render(scene, threeCamera);
     }
+};
+
+const initializeKeyboardHandlers = (canvas) => {
+    window.addEventListener("keydown", () => {
+        canvas.focus();
+    });
+
+    window.addEventListener("keypress", (event) => {
+        switch (event.key) {
+            case "w":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "up arrow", keyCode: 38 }),
+                );
+                break;
+            case "a":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "left arrow", keyCode: 37 }),
+                );
+                break;
+            case "s":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "down arrow", keyCode: 40 }),
+                );
+                break;
+            case "d":
+                canvas.dispatchEvent(
+                    new KeyboardEvent("keydown", { key: "right arrow", keyCode: 39 }),
+                );
+                break;
+            default:
+                break;
+        }
+    });
+
+    document.getElementById("up").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "up arrow", keyCode: 38 }));
+    });
+    document.getElementById("left").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "left arrow", keyCode: 37 }));
+    });
+    document.getElementById("down").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "down arrow", keyCode: 40 }));
+    });
+    document.getElementById("right").addEventListener("click", () => {
+        canvas.dispatchEvent(new KeyboardEvent("keydown", { key: "right arrow", keyCode: 39 }));
+    });
 };

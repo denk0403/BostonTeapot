@@ -1,5 +1,12 @@
+html,
 body {
-    padding: 15px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+body {
+    padding: 10px;
     background-color: rgb(229, 242, 228);
 }
 
@@ -22,6 +29,7 @@ input[type="range"] {
 
 .title:hover {
     transform: translateX(30px);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-image: linear-gradient(to right, black, black);
@@ -36,6 +44,7 @@ input[type="range"] {
 .title:hover::after {
     display: inline-block;
     content: "🫖";
+    background-clip: initial;
     -webkit-background-clip: initial;
     -webkit-text-fill-color: initial;
     background-image: initial;
@@ -77,14 +86,68 @@ input[type="range"] {
     border-radius: 7px;
 }
 
+.animation_button_controls button:hover {
+    filter: brightness(0.9);
+}
+
+.animation_button_controls button:active {
+    filter: brightness(0.75);
+}
+
 .animation_button_controls button + button {
     margin-left: 10px;
+}
+
+.camera_controls {
+    width: min(75%, 550px);
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    height: 100px;
+}
+
+.camera_button_controls button {
+    padding: 7px;
+    border-radius: 7px;
+}
+
+.camera_button_controls button + button {
+    margin-left: 10px;
+}
+
+.camera_button_controls button:hover {
+    filter: brightness(0.9);
+}
+
+.camera_button_controls button:active {
+    filter: brightness(0.75);
+}
+
+.panButtons {
+    display: grid;
+    grid-template-columns: repeat(3, 50px);
+    grid-template-rows: repeat(2, 45px);
+}
+
+.panButtons > button {
+    margin: 2.5px;
+    border-radius: 7px;
+    font-size: large;
+}
+
+.panButtons > button:hover {
+    filter: brightness(0.9);
+}
+
+.panButtons > button:active {
+    filter: brightness(0.75);
 }
 
 .content {
     display: grid;
     grid-template-columns: 65% 33%;
     column-gap: 10px;
+    height: 100%;
 }
 
 .project {
@@ -97,6 +160,15 @@ input[type="range"] {
     background-color: rgb(158, 240, 255);
     padding: 10px 20px;
     border-radius: 10px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.description embed {
+    width: 100%;
+    display: flex;
+    flex: 1;
 }
 
 .center-text {
@@ -104,6 +176,7 @@ input[type="range"] {
 }
 
 input[type="range"] {
+    width: 90%;
     -webkit-appearance: none;
     margin: 18px 0;
 }
